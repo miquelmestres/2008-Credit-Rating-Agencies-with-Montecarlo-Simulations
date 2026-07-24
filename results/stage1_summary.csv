@@ -1,0 +1,5 @@
+scenario,mean_loss_%,prob_any_loss_%,VaR_99_%,ES_99_%,coupon_%,mean_net_return_%,prob_negative_return_%
+Pool (whole),6.0004,100.0,7.38,7.556,,,
+Equity tranche,99.8436,100.0,100.0,100.0,18.0,-81.8436,100.0
+Mezzanine tranche,6.7217,96.1765,15.8667,17.0402,9.0,2.2783,27.755
+Senior (AAA) tranche,0.0,0.0,0.0,0.0,6.0,6.0,0.0
