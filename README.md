@@ -1,7 +1,5 @@
 # Rated Safe, Priced Blind: A Monte Carlo Test of Credit Rating Agency Fragility
 
-**Does "AAA" mean safe — or does it just mean "we didn't model the correlation"?**
-
 This project is a numerical test of an argument Nassim Taleb makes in his opera magna *Antifragile*: credit rating agencies are structurally disconnected from the consequences of their own judgments. They are paid to issue opinions on securities they never have to hold, using models that can look correct ex-ante for years and then fail catastrophically all at once (following a black swan). This was a point made to ashame players without skin in the game for the (then recent) 2008 crisis, precisely because in this type of environments, one would be taken out by a single catastrophic event (before receiving a government bailout).
 
 This project builds a *synthetic* mortgage pool, tranches it the way a 2006-07 subprime CDO was structured, and runs it through several Monte Carlo engines of increasing realism to show *mechanically* how a handful of hidden assumptions (independence, correlation, and how loss severity behaves in a crisis) turn a "virtually risk-free" AAA-rated tranche into one exposed to serious tail risk, without changing a single loan's individual credit quality or its rating.
