@@ -1,0 +1,91 @@
+######################################################################
+# Running run_stage1_independent.py
+######################################################################
+======================================================================
+STAGE 1 — Independent defaults (the agencies' implicit assumption)
+======================================================================
+Pool: 1000 loans | p(default)=10% | LGD=60% | trials=200,000
+
+                      mean_loss_%  prob_any_loss_%  VaR_99_%   ES_99_%  coupon_%  mean_net_return_%  prob_negative_return_%
+scenario                                                                                                                   
+Pool (whole)             6.000400         100.0000    7.3800    7.5560       NaN                NaN                     NaN
+Equity tranche          99.843597         100.0000  100.0000  100.0000      18.0           -81.8436                 100.000
+Mezzanine tranche        6.721700          96.1765   15.8667   17.0402       9.0             2.2783                  27.755
+Senior (AAA) tranche     0.000000           0.0000    0.0000    0.0000       6.0             6.0000                   0.000
+
+>> Under independence, P(AAA tranche loses ANY money) = 0.0000%
+>> This is why, on paper, the AAA rating looked essentially risk-free.
+>> Figure saved to results/figures/stage1_pool_loss_distribution.png
+
+
+######################################################################
+# Running run_stage2_correlated.py
+######################################################################
+======================================================================
+STAGE 2 — Correlated defaults (single-factor t-copula)
+======================================================================
+Pool: 1000 loans | p(default)=10% (UNCHANGED from Stage 1) | LGD=60% | trials=200,000
+
+ rho  AAA_prob_any_loss_%  AAA_VaR_99_%  AAA_ES_99_%  pool_VaR_99_%  AAA_mean_net_return_%  AAA_prob_negative_return_%
+0.00               0.0000        0.0000       0.0000         7.3800                 6.0000                      0.0000
+0.05               0.0140        0.0000       0.0002        13.6262                 5.9998                      0.0005
+0.10               0.4930        0.0000       0.0165        18.1045                 5.9835                      0.0845
+0.15               1.7450        2.8828       7.6578        22.3062                 5.9133                      0.5300
+0.20               3.3125        8.1249      14.2797        26.4999                 5.7807                      1.3950
+0.30               6.3540       18.8976      27.5673        35.1181                 5.3586                      3.5995
+0.40               8.7690       30.3468      40.9921        44.2774                 4.7804                      5.8625
+0.50              10.5610       42.6643      54.3903        54.1315                 4.0831                      7.7545
+0.60              11.8340       55.6456      67.3151        64.5165                 3.2771                      9.2665
+
+>> P(AAA loses money) rises from 0.000% at rho=0 to 10.561% at rho=0.5.
+>> No individual loan's default probability changed. No rating would have changed.
+>> Only the CORRELATION assumption changed -- and that alone decides whether
+   'AAA' means 'essentially risk-free' or 'exposed to real tail risk'.
+
+----------------------------------------------------------------------
+BONUS: Black Swan stress test — systemic factor at -3 sigma
+----------------------------------------------------------------------
+  scenario: AAA tranche | rho=0.3, shock=-3 sigma
+  mean_loss_%: 54.233394622802734
+  prob_any_loss_%: 100.0
+  VaR_99_%: 58.24374556541443
+  ES_99_%: 58.796483278274536
+  coupon_%: 6.0
+  mean_net_return_%: -48.2333984375
+  prob_negative_return_%: 100.0
+
+  scenario: AAA tranche | rho=0.3, shock=-3 sigma (t-copula)
+  mean_loss_%: 44.96320724487305
+  prob_any_loss_%: 94.118
+  VaR_99_%: 85.43750047683716
+  ES_99_%: 86.9311511516571
+  coupon_%: 6.0
+  mean_net_return_%: -38.96320724487305
+  prob_negative_return_%: 91.014
+
+>> Under an actual systemic shock, the 'AAA' tranche's expected loss
+   is 54.2% of its notional. Figure saved to results/figures/stage2_stress_vs_correlated.png
+
+----------------------------------------------------------------------
+CALIBRATION: how does rho compare to real-world reference points?
+----------------------------------------------------------------------
+  Geidosch (2014) empirical RMBS estimate (rho=0.06): P(AAA loss>0) = 0.0480%
+  Basel IRB regulatory mortgage correlation (rho=0.15): P(AAA loss>0) = 1.7450%
+
+  ABX.HE AAA price -> implied loss -> implied rho (base-correlation style):
+    2007-02-23 (06-2): price=99.15 -> implied_loss=0.008 -> implied rho=0.134
+    2007-12-31 (06-2): price=87.0 -> implied_loss=0.130 -> UNREACHABLE by rho alone even at 0.95 (see note below)
+    2008-12-02 (07-2): price=30.34 -> implied_loss=0.697 -> UNREACHABLE by rho alone even at 0.95 (see note below)
+
+  Note: if a target is unreachable by rho alone, that's not a solver bug --
+  a single-factor copula's tail loss probability is structurally capped near
+  the marginal default probability itself (p_default). Matching a higher
+  ABX-implied loss requires ALSO raising p_default, not just correlation --
+  i.e. agencies may have underpriced INDIVIDUAL default risk, not only correlation.
+
+----------------------------------------------------------------------
+ROBUSTNESS CHECK: Gaussian vs t-copula at the same rho
+----------------------------------------------------------------------
+  rho=0.15: Gaussian P(loss>0)=1.177%  ES99=4.64%   |   t-copula P(loss>0)=4.816%  ES99=16.93%
+  rho=0.3: Gaussian P(loss>0)=4.712%  ES99=18.65%   |   t-copula P(loss>0)=7.352%  ES99=27.92%
+  rho=0.5: Gaussian P(loss>0)=8.448%  ES99=34.42%   |   t-copula P(loss>0)=9.582%  ES99=39.81%
